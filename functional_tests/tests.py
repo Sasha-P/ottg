@@ -7,7 +7,7 @@ from selenium import webdriver
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.common.keys import Keys
 
-
+SLEEP_TIME = 1
 Chrome, Firefox, Opera = range(3)
 WEB_DRIVERS = {
     'dir': '../../drivers',
@@ -26,6 +26,7 @@ caps["binary"] = "/usr/bin/firefox"
 
 
 class NewVisitorTest(LiveServerTestCase):
+
     def setUp(self):
         self.browser = webdriver.Firefox(capabilities=caps, executable_path=complete_path)
         self.browser.implicitly_wait(10)
@@ -62,7 +63,7 @@ class NewVisitorTest(LiveServerTestCase):
         # When she hits enter, the page updates, and now the page lists
         # "1: Buy peacock feathers" as an item in a to-do list table
         inputbox.send_keys(Keys.ENTER)
-        time.sleep(2)
+        time.sleep(SLEEP_TIME)
         self.check_for_row_in_list_table('1: Buy peacock feathers')
 
         # There is still a text box inviting her to add another item. She
@@ -73,7 +74,7 @@ class NewVisitorTest(LiveServerTestCase):
         inputbox.send_keys(Keys.ENTER)
 
         # The page updates again, and now shows both items on her list
-        time.sleep(2)
+        time.sleep(SLEEP_TIME)
         self.check_for_row_in_list_table('1: Buy peacock feathers')
         self.check_for_row_in_list_table('2: Use peacock feathers to make a fly')
 
@@ -85,7 +86,7 @@ class NewVisitorTest(LiveServerTestCase):
         inputbox = self.browser.find_element_by_id('id_new_item')
         inputbox.send_keys('Buy peacock feathers')
         inputbox.send_keys(Keys.ENTER)
-        time.sleep(2)
+        time.sleep(SLEEP_TIME)
         self.check_for_row_in_list_table('1: Buy peacock feathers')
 
         # She notices that her list has a unique URL
@@ -111,7 +112,7 @@ class NewVisitorTest(LiveServerTestCase):
         inputbox = self.browser.find_element_by_id('id_new_item')
         inputbox.send_keys('Buy milk')
         inputbox.send_keys(Keys.ENTER)
-        time.sleep(2)
+        time.sleep(SLEEP_TIME)
         self.check_for_row_in_list_table('1: Buy milk')
 
         # Francis gets his own unique URL
@@ -125,3 +126,27 @@ class NewVisitorTest(LiveServerTestCase):
         self.assertIn('Buy milk', page_text)
 
         # Satisfied, they both go back to sleep
+
+    def test_layout_and_styling(self):
+        # Edith goes to the home page
+        self.browser.get(self.live_server_url)
+        self.browser.set_window_size(1024, 768)
+        time.sleep(SLEEP_TIME)
+
+        # She notices the input box is nicely centered
+        inputbox = self.browser.find_element_by_id('id_new_item')
+        self.assertAlmostEqual(
+            inputbox.location['x'] + inputbox.size['width'] / 2,
+            512,
+            delta=5
+        )
+
+        # She starts a new list and sees the input is nicely
+        # centered there too
+        inputbox.send_keys('testing\n')
+        inputbox = self.browser.find_element_by_id('id_new_item')
+        self.assertAlmostEqual(
+            inputbox.location['x'] + inputbox.size['width'] / 2,
+            512,
+            delta=5
+        )
